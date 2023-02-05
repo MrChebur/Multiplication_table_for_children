@@ -56,11 +56,11 @@ class Task:
         return new_str
 
     def request_answer(self, validate=True):
-        print(t, end='')
-        t.startTimer()
+        print(self, end='')
+        self.startTimer()
         # TODO pip install restricted_input https://pypi.org/project/restricted-input/ restrict user input in real time
         self.user_answer = float(input())
-        t.stopTimer()
+        self.stopTimer()
         if validate:
             if self.isCorrect():
                 print('Correct!')

@@ -65,14 +65,14 @@ class GenerateTasks:
 if __name__ == '__main__':
     g = GenerateTasks()
 
-    multiplicators = list(range(2, 10))
+    multipliers = list(range(2, 10))
 
-    tsk = g.multiplication(multiplicators, shuffle=False)
+    tsk = g.multiplication(multipliers, shuffle=False)
     for t in tsk:
         print(t, t.solve())
 
     print()
 
-    tsk = g.division(multiplicators, shuffle=False)
+    tsk = g.division(multipliers, shuffle=False)
     for t in tsk:
         print(t, t.solve())
