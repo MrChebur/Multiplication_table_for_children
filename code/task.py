@@ -9,8 +9,9 @@ class Task:
     time_elapsed = None
     dot2comma = True
 
-    __supported_operators = '+-*/() '
-    __allowed_characters = string.digits + __supported_operators + '.,'  # is used to limit the execution of `eval()`
+    # is used to limit the execution of `eval()`
+    __supported_operators = '+-*/() '  # the space was added intentionally
+    __allowed_characters = string.digits + __supported_operators + '.,'
 
     def __init__(self, task: str, dot2comma=True):
         """

@@ -51,7 +51,7 @@ def ask_for_multipliers():
     if user_input == '*':
         user_input = '2,3,4,5,6,7,8,9'
     multipliers = parse_multipliers(user_input)
-    if multipliers is None:
+    if not multipliers:
         print(f'Unable to convert multipliers to integer values: {user_input}')
     return multipliers
 
@@ -61,13 +61,13 @@ def parse_multipliers(multipliers: str, delimeter=',') -> list:
     try:
         multipliers_list_as_int = [int(x) for x in multipliers_list]
     except ValueError:
-        return None
+        return []
     return multipliers_list_as_int
 
 
 def select_multipliers():
     multipliers = None
-    while multipliers is None:
+    while not multipliers:
         multipliers = ask_for_multipliers()
     return multipliers
 
