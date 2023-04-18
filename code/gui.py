@@ -1,3 +1,4 @@
+from pathlib import Path
 import random
 import sys
 
@@ -8,6 +9,7 @@ from __feature__ import snake_case, true_property
 
 
 class MyWidget(QWidget):
+
     def __init__(self):
         QWidget.__init__(self)
 
@@ -36,6 +38,16 @@ class MyWidget(QWidget):
 
 
 if __name__ == "__main__":
+    current_py_file = Path(__file__)
+    main_folder = current_py_file.parents[1]
+    icons_folder = main_folder.joinpath('icons')
+    memorize_icon = icons_folder.joinpath('Memorize.png')
+    start_the_test_icon = icons_folder.joinpath('Start_the_test.png')
+
+    print(icons_folder)
+    print(memorize_icon)
+    print(start_the_test_icon)
+
     app = QApplication(sys.argv)
 
     widget = MyWidget()
@@ -43,9 +55,7 @@ if __name__ == "__main__":
 
     sys.exit(app.exec())
 
-# todo
-#  no text interface - only icons
-#  icon `test yourself icon` https://www.google.com/search?q=test+youself+icon
-#  icon `memorize icon`https://www.google.com/search?q=memorize+icon
-#  stopwatch - how long it takes to solve this example
-#  stopwatch - how long the entire session takes (solving time only)
+    # todo
+    #  stopwatch - how long it takes to solve this example
+    #  stopwatch - how long the entire session takes (solving time only)
+    #  no text interface - only icons
