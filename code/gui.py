@@ -1,59 +1,50 @@
 from pathlib import Path
-import random
-import sys
-
-from PySide6.QtCore import Qt, Slot
-from PySide6.QtWidgets import (QApplication, QLabel, QPushButton,
-                               QVBoxLayout, QWidget)
-from __feature__ import snake_case, true_property
+from PySide6.QtGui import QPixmap, QMouseEvent
+from PySide6.QtWidgets import QApplication, QMainWindow, QLabel
 
 
-class MyWidget(QWidget):
+class MainWindow(QMainWindow):
+
+    def initUI(self):
+        self.setGeometry(100, 100, 550, 400)
+        self.setWindowTitle(' ')
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
+        self.initUI()
 
-        self.hello = [
-            "Hallo Welt",
-            "你好，世界",
-            "Hei maailma",
-            "Hola Mundo",
-            "Привет мир",
-        ]
+        self.memorizeLabel = QLabel(self)
+        self.startTheTestLabel = QLabel(self)
 
-        self.button = QPushButton("Click me!")
-        self.message = QLabel("Hello World")
-        self.message.alignment = Qt.AlignCenter
+        self.memorizeLabel.setGeometry(50, 50, 200, 200)
+        self.startTheTestLabel.setGeometry(300, 50, 200, 200)
 
-        self.layout = QVBoxLayout(self)
-        self.layout.add_widget(self.message)
-        self.layout.add_widget(self.button)
+        current_py_file = Path(__file__)
+        main_folder = current_py_file.parents[1]
+        icons_folder = main_folder.joinpath('icons')
+        memorize_icon = icons_folder.joinpath('Memorize.png')
+        start_the_test_icon = icons_folder.joinpath('Start_the_test.png')
+        memorizePixmap = QPixmap(str(memorize_icon))
+        startTheTestPixmap = QPixmap(str(start_the_test_icon))
 
-        # Connecting the signal
-        self.button.clicked.connect(self.magic)
+        self.memorizeLabel.setPixmap(memorizePixmap)
+        self.startTheTestLabel.setPixmap(startTheTestPixmap)
 
-    @Slot()
-    def magic(self):
-        self.message.text = random.choice(self.hello)
+        self.memorizeLabel.mousePressEvent = self.showMultiplicationTable
+        self.startTheTestLabel.mousePressEvent = self.startTheTest
+
+    def startTheTest(self, event: QMouseEvent):
+        print('startTheTest')
+
+    def showMultiplicationTable(self, event: QMouseEvent):
+        print('showMultiplicationTable')
 
 
-if __name__ == "__main__":
-    current_py_file = Path(__file__)
-    main_folder = current_py_file.parents[1]
-    icons_folder = main_folder.joinpath('icons')
-    memorize_icon = icons_folder.joinpath('Memorize.png')
-    start_the_test_icon = icons_folder.joinpath('Start_the_test.png')
-
-    print(icons_folder)
-    print(memorize_icon)
-    print(start_the_test_icon)
-
-    app = QApplication(sys.argv)
-
-    widget = MyWidget()
-    widget.show()
-
-    sys.exit(app.exec())
+if __name__ == '__main__':
+    app = QApplication([])
+    window = MainWindow()
+    window.show()
+    app.exec()
 
     # todo
     #  stopwatch - how long it takes to solve this example
