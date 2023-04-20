@@ -40,39 +40,39 @@ class MainWindow(QMainWindow):
 
     def showMultiplicationTable(self, event: QMouseEvent):
         print('showMultiplicationTable')
-
-    def open_new_window(self):
-        # Создание нового окна
         self.new_window = MultiplicationTableWindow()
         self.new_window.show()
         self.close()
+
+    # def open_new_window(self):
+    #     # Создание нового окна
+    #     self.new_window = MultiplicationTableWindow()
+    #     self.new_window.show()
+    #     self.close()
 
 
 class MultiplicationTableWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.table = QTableWidget(self)
-        # self.table.setShowGrid(False)
+        self.table.setShowGrid(False)
         self.table.verticalHeader().hide()
         self.table.horizontalHeader().hide()
-        self.table.setFont(QFont('Arial', 15))
+        self.table.setFont(QFont('Arial', 17))
         self.initUI()
 
     def initUI(self):
         min_multiplier = 2
         max_multiplier = 10
+        max_rows = 1
 
         self.setWindowTitle(" ")
-        self.setGeometry(100, 100, 800, 800)
+        self.setGeometry(100, 100, 1200, 600)
 
-        self.generateTableSize(min_multiplier, max_multiplier, 3)
+        self.generateTableSize(min_multiplier, max_multiplier, max_rows)
         self.fill_table(min_multiplier, max_multiplier)
-
-        # Создание вертикального лейаута
         vbox = QVBoxLayout()
         vbox.addWidget(self.table)
-
-        # Установка лейаута
         self.setLayout(vbox)
 
     def generateTableSize(self, min_multiplier, max_multiplier, rows_number):
@@ -88,11 +88,11 @@ class MultiplicationTableWindow(QWidget):
         multipliers = list(range(min_multiplier, max_multiplier))
         generate = GenerateTasks()
         tasks = generate.multiplication(multipliers, shuffle=False)
-        text = ''
+        text = '\n'
         row = 0
         column = 0
         for num, task in enumerate(tasks):
-            text += str(task) + str(task.solve())
+            text += str(task) + str(task.solve()) + '    '
             first_value = str(task).split(' ')[0]
             try:
                 next_first_value = str(tasks[num + 1]).split(' ')[0]
@@ -105,7 +105,7 @@ class MultiplicationTableWindow(QWidget):
 
                 item = QTableWidgetItem(text.replace('*', 'x'))
                 self.table.setItem(row, column, item)
-                text = ''
+                text = '\n'
                 if column < column_max - 1:
                     column += 1
                 else:
@@ -126,8 +126,8 @@ class MultiplicationTableWindow(QWidget):
 
 if __name__ == '__main__':
     app = QApplication([])
-    # window = MainWindow()
-    window = MultiplicationTableWindow()
+    window = MainWindow()
+    # window = MultiplicationTableWindow()
     window.show()
     app.exec()
 
