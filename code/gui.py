@@ -1,11 +1,24 @@
 import math
 from pathlib import Path
 from PySide6.QtGui import QPixmap, QMouseEvent, QFont
-from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QTableWidgetItem, QTableWidget, QVBoxLayout, \
-    QSpacerItem, QSizePolicy, QBoxLayout, QAbstractItemView
+from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QTableWidgetItem, QTableWidget, QGridLayout, \
+    QVBoxLayout, QSpacerItem, QSizePolicy, QAbstractItemView, QSpinBox
 from PySide6.QtCore import Qt
 from generate import GenerateTasks
 from screeninfo import get_monitors
+
+
+def findMainWindow() -> QMainWindow or None:
+    '''
+    Global function to find the (open) QMainWindow in application
+    :return: QMainWindow or None
+    '''
+    #
+    app = QApplication.instance()
+    for widget in app.topLevelWidgets():
+        if isinstance(widget, QMainWindow):
+            return widget
+    return None
 
 
 def getMonitorResolution():
@@ -33,21 +46,67 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.main_widget)
 
         # create layout
-        self.vbox = QVBoxLayout(self.main_widget)
+
+        self.vbox = QGridLayout(self.main_widget)
+        # self.vbox = QVBoxLayout(self.main_widget)
         self.setLayout(self.vbox)
         self.vbox.setAlignment(Qt.AlignCenter)
-        self.vbox.setDirection(QBoxLayout.LeftToRight)
+        # self.vbox.setDirection(QBoxLayout.LeftToRight)
 
         # create icons
         self.memorizeLabel = QLabel(self)
         self.startTheTestLabel = QLabel(self)
 
+        # create labels
+        self.min_value_label = QLabel()
+        self.min_value_label.setText('2 х 2 = 4')
+
+        self.dots_label = QLabel()
+        self.dots_label.setText('.......')
+
+        self.max_value_label = QLabel()
+        self.max_value_label.setText('9 х 9 = 81')
+
+        # create spin boxes
+        self.min_value = QSpinBox()
+        self.max_value = QSpinBox()
+        self.min_value.setValue(2)
+        self.max_value.setValue(9)
+        self.min_value.setMinimum(2)
+        self.min_value.setMaximum(9)
+        self.max_value.setMinimum(2)
+        self.max_value.setMaximum(20)
+        self.min_value.valueChanged.connect(self.updateMinValueLabel)
+        self.max_value.valueChanged.connect(self.updateMaxValueLabel)
+
+        # set font size and alignment
+        for widget in (self.min_value_label, self.dots_label, self.max_value_label, self.min_value, self.max_value):
+            widget.setAlignment(Qt.AlignCenter)
+            widget.setFont(QFont('Arial', 15))
+
         # add items
         self.configureIcons()
-        self.vbox.addWidget(self.memorizeLabel)
-        self.vbox.addWidget(self.startTheTestLabel)
+        self.vbox.addWidget(self.min_value_label, 0, 0)
+        self.vbox.addWidget(self.dots_label, 1, 0)
+        self.vbox.addWidget(self.max_value_label, 2, 0)
+
+        self.vbox.addWidget(self.min_value, 0, 1)
+        self.vbox.addWidget(self.max_value, 2, 1)
+
+        self.vbox.addWidget(self.memorizeLabel, 3, 0)
+        self.vbox.addWidget(self.startTheTestLabel, 3, 1)
 
         self.adjustSize()
+
+    def updateMinValueLabel(self):
+        min_value = self.min_value.value()
+        self.min_value_label.setText(f'{min_value} х {min_value} = {min_value * min_value}')
+        self.max_value.setMinimum(min_value)
+
+    def updateMaxValueLabel(self):
+        max_value = self.max_value.value()
+        self.max_value_label.setText(f'{max_value} х {max_value} = {max_value * max_value}')
+        self.min_value.setMaximum(max_value)
 
     def configureIcons(self):
         icon_x_size, icon_y_size = 200, 200
@@ -77,15 +136,17 @@ class MainWindow(QMainWindow):
 
     # noinspection PyUnusedLocal
     def showMultiplicationTable(self, event: QMouseEvent):
-        print('showMultiplicationTable')
-        self.multiplication_table_window = MultiplicationTableWindow()
+        min_multiplier = self.min_value.value()
+        max_multiplier = self.max_value.value()
+
+        self.multiplication_table_window = MultiplicationTableWindow(min_multiplier, max_multiplier)
         self.multiplication_table_window.showMaximized()
         self.hide()  # OR self.close() ?
 
 
 # noinspection PyUnresolvedReferences
 class MultiplicationTableWindow(QWidget):
-    def __init__(self):
+    def __init__(self, min_multiplier, max_multiplier):
 
         super().__init__()
         self.table = QTableWidget(self)
@@ -106,10 +167,17 @@ class MultiplicationTableWindow(QWidget):
         self.table.setFont(QFont('Arial', resized_font_size))
 
         self.showMaximized()
-        self.initUI(min_multiplier=2,
-                    max_multiplier=10)
+        self.initUI(min_multiplier, max_multiplier + 1)
 
     def closeEvent(self, event):
+        '''
+        Overwrites `closeEvent` to display the main window after closing the table.
+        :param event:
+        :return:
+        '''
+        main_window = findMainWindow()
+        if main_window is not None:
+            main_window.show()
         event.accept()
 
     def initUI(self, min_multiplier, max_multiplier):
@@ -147,6 +215,8 @@ class MultiplicationTableWindow(QWidget):
         self.table.setRowCount(rows_number)
 
     def fill_table(self, min_multiplier, max_multiplier):
+        # todo: неверно работает таблица, если указать только таблицу умножения на число Х, например, 2
+        #  должна выводиться полная таблица умножения начиная с 2*2 до 2*9
         SPACE = ' '
         column_max, row_max = self.table.columnCount(), self.table.rowCount()
         multipliers = list(range(min_multiplier, max_multiplier))
@@ -188,7 +258,8 @@ class MultiplicationTableWindow(QWidget):
 if __name__ == '__main__':
     app = QApplication([])
     window = MainWindow()
-    window.showMaximized()
+    # window.showMaximized()
+    window.show()
     app.exec()
 
     # todo
