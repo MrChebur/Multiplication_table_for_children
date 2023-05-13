@@ -1,3 +1,4 @@
+# todo Not implemented
 class Statistic:
 
     test_results = None

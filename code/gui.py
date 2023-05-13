@@ -215,9 +215,13 @@ class MultiplicationTableWindow(QWidget):
         self.table.setRowCount(rows_number)
 
     def fill_table(self, min_multiplier, max_multiplier):
-        # todo: неверно работает таблица, если указать только таблицу умножения на число Х, например, 2
+        # todo: 1 добавить возможность вывода таблицы умножения с повторениями предыдущих значений
+        #  добавить переключатель кнопкой
+
+        # todo: 2 неверно работает таблица, если указать только таблицу умножения на число Х, например, 2
         #  должна выводиться полная таблица умножения начиная с 2*2 до 2*9
         #  видимо, надо переделать генератор задач в generate.py
+
         SPACE = ' '
         column_max, row_max = self.table.columnCount(), self.table.rowCount()
         multipliers = list(range(min_multiplier, max_multiplier))
