@@ -65,7 +65,7 @@ class GenerateTasks:
 if __name__ == '__main__':
     g = GenerateTasks()
 
-    multipliers_ = list(range(2, 10))
+    multipliers_ = list(range(2, 6))
 
     tsk = g.multiplication(multipliers_, shuffle=False)
     for t in tsk:

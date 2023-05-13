@@ -9,13 +9,13 @@ from screeninfo import get_monitors
 
 
 def findMainWindow() -> QMainWindow or None:
-    '''
+    """
     Global function to find the (open) QMainWindow in application
     :return: QMainWindow or None
-    '''
+    """
     #
-    app = QApplication.instance()
-    for widget in app.topLevelWidgets():
+    appication = QApplication.instance()
+    for widget in appication.topLevelWidgets():
         if isinstance(widget, QMainWindow):
             return widget
     return None
@@ -170,11 +170,11 @@ class MultiplicationTableWindow(QWidget):
         self.initUI(min_multiplier, max_multiplier + 1)
 
     def closeEvent(self, event):
-        '''
+        """
         Overwrites `closeEvent` to display the main window after closing the table.
         :param event:
         :return:
-        '''
+        """
         main_window = findMainWindow()
         if main_window is not None:
             main_window.show()
