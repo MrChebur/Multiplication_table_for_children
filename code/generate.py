@@ -33,7 +33,14 @@ class GenerateTasks:
         :return: List of Tasks
         """
         tasks = []
-        permutations = self.generate_uniq_permutations(multipliers, multipliers)
+
+        if max(multipliers) > 9:
+            last_constant_multiplier = max(multipliers)
+        else:
+            last_constant_multiplier = 9
+        constant_multipliers = list(range(2, last_constant_multiplier + 1))
+
+        permutations = self.generate_uniq_permutations(constant_multipliers, multipliers)
         for permutation in permutations:
             permutation_as_string = [str(_) for _ in permutation]
             task = Task(' * '.join(permutation_as_string))
@@ -65,7 +72,8 @@ class GenerateTasks:
 if __name__ == '__main__':
     g = GenerateTasks()
 
-    multipliers_ = list(range(2, 6))
+    multipliers_ = list(range(12, 13))
+    # print(multipliers_)
 
     tsk = g.multiplication(multipliers_, shuffle=False)
     for t in tsk:
@@ -73,6 +81,6 @@ if __name__ == '__main__':
 
     print()
 
-    tsk = g.division(multipliers_, shuffle=False)
-    for t in tsk:
-        print(t, t.solve())
+    # tsk = g.division(multipliers_, shuffle=False)
+    # for t in tsk:
+    #     print(t, t.solve())

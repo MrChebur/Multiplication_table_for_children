@@ -1,4 +1,5 @@
 import math
+from pprint import pprint
 from pathlib import Path
 from PySide6.QtGui import QPixmap, QMouseEvent, QFont
 from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QTableWidgetItem, QTableWidget, QGridLayout, \
@@ -6,6 +7,8 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QTable
 from PySide6.QtCore import Qt
 from generate import GenerateTasks
 from screeninfo import get_monitors
+
+from task import Task
 
 
 def findMainWindow() -> QMainWindow or None:
@@ -40,6 +43,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.multiplication_table_window = None
+        self.exam_window = None
         self.setWindowTitle(' ')
 
         self.main_widget = QWidget()
@@ -105,7 +109,12 @@ class MainWindow(QMainWindow):
 
     def updateMaxValueLabel(self):
         max_value = self.max_value.value()
-        self.max_value_label.setText(f'{max_value} х {max_value} = {max_value * max_value}')
+        if max_value < 9:
+            second_multiplier = 9
+        else:
+            second_multiplier = max_value
+
+        self.max_value_label.setText(f'{max_value} х {second_multiplier} = {max_value * second_multiplier}')
         self.min_value.setMaximum(max_value)
 
     def configureIcons(self):
@@ -133,6 +142,8 @@ class MainWindow(QMainWindow):
     #   noinspection PyUnusedLocal
     def startTheTest(self, event: QMouseEvent):
         print('startTheTest', self)
+        self.exam_window = ExamWindow()
+        self.exam_window.showMaximized()
 
     # noinspection PyUnusedLocal
     def showMultiplicationTable(self, event: QMouseEvent):
@@ -145,6 +156,7 @@ class MainWindow(QMainWindow):
 
 
 # noinspection PyUnresolvedReferences
+# noinspection PyMethodMayBeStatic
 class MultiplicationTableWindow(QWidget):
     def __init__(self, min_multiplier, max_multiplier):
 
@@ -181,8 +193,8 @@ class MultiplicationTableWindow(QWidget):
         event.accept()
 
     def initUI(self, min_multiplier, max_multiplier):
-
-        max_rows = math.ceil((max_multiplier - min_multiplier) / 8)
+        maximum_columns_in_the_row = 8
+        max_rows = math.ceil((max_multiplier - min_multiplier) / maximum_columns_in_the_row)
 
         self.setWindowTitle(" ")
         self.generateTableSize(min_multiplier, max_multiplier, max_rows)
@@ -207,12 +219,25 @@ class MultiplicationTableWindow(QWidget):
         self.adjustSize()
 
     def generateTableSize(self, min_multiplier, max_multiplier, rows_number):
-        column_number = -1 + (max_multiplier - min_multiplier + 1) / rows_number
-        remainder = (max_multiplier - min_multiplier + 1) % rows_number
+        columns_number = (max_multiplier - min_multiplier) / rows_number
+        remainder = (max_multiplier - min_multiplier) % rows_number
         if remainder != 0:
             rows_number += 1
-        self.table.setColumnCount(column_number)
+        self.table.setColumnCount(columns_number)
         self.table.setRowCount(rows_number)
+
+    def groupTasksByMultiplier(self, tasks: [Task], reverse_tasks=False):
+        groups = {}
+        SPACE = ' '
+        if reverse_tasks:
+            tasks.reverse()
+        for num, task in enumerate(tasks):
+            multiplier1 = str(task).split(SPACE)[0]
+            if multiplier1 not in groups:
+                groups[multiplier1] = []
+            groups[multiplier1].append(task)
+            print(str(task) + str(task.solve()))
+        return groups
 
     def fill_table(self, min_multiplier, max_multiplier):
         # todo: 1 добавить возможность вывода таблицы умножения с повторениями предыдущих значений
@@ -222,35 +247,31 @@ class MultiplicationTableWindow(QWidget):
         #  должна выводиться полная таблица умножения начиная с 2*2 до 2*9
         #  видимо, надо переделать генератор задач в generate.py
 
-        SPACE = ' '
+        NO_BREAK_SPACE = ' '
+        NEW_LINE = '\n'
         column_max, row_max = self.table.columnCount(), self.table.rowCount()
-        multipliers = list(range(min_multiplier, max_multiplier))
+        multipliers = list(range(2, max_multiplier))
         generate = GenerateTasks()
         tasks = generate.multiplication(multipliers, shuffle=False)
-        text = ''
-        row = 0
-        column = 0
+        groups = self.groupTasksByMultiplier(tasks)
+        pprint(groups)
 
-        for num, task in enumerate(tasks):
-            text += str(task) + str(task.solve()) + SPACE * 3
-            first_value = str(task).split(SPACE)[0]
+        row, column = 0, 0
+        print(min_multiplier, max_multiplier)
+        for group_number in range(min_multiplier, max_multiplier):
+            tasks_list = groups[str(group_number)]
+            text = ''
+            for task in tasks_list:
+                text += str(task) + str(task.solve()) + NO_BREAK_SPACE * 3 + NEW_LINE
+            text = text.replace('*', 'x')
+            item = QTableWidgetItem(text)
+            self.table.setItem(row, column, item)
 
-            try:
-                next_first_value = str(tasks[num + 1]).split(SPACE)[0]
-            except IndexError:
-                next_first_value = None
-
-            if first_value == next_first_value:
-                text += '\n'
+            if column < column_max - 1:
+                column += 1
             else:
-                item = QTableWidgetItem(text.replace('*', 'x'))
-                self.table.setItem(row, column, item)
-                text = '\n'
-                if column < column_max - 1:
-                    column += 1
-                else:
-                    row += 1
-                    column = 0
+                row += 1
+                column = 0
 
     def setAlignment(self):
         for i in range(self.table.rowCount()):
@@ -258,6 +279,34 @@ class MultiplicationTableWindow(QWidget):
                 item = self.table.item(i, j)
                 if item is not None:
                     item.setTextAlignment(Qt.AlignLeft | Qt.AlignBottom)
+
+
+class ExamWindow(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle(' ')
+
+        self.main_widget = QWidget()
+        # self.setCentralWidget(self.main_widget)
+
+        # create layout
+        self.vbox = QGridLayout(self.main_widget)
+        self.setLayout(self.vbox)
+        self.vbox.setAlignment(Qt.AlignCenter)
+        # add items
+        self.adjustSize()
+
+    def closeEvent(self, event):
+        """
+        Overwrites `closeEvent` to display the main window after closing the table.
+        :param event:
+        :return:
+        """
+        main_window = findMainWindow()
+        if main_window is not None:
+            main_window.show()
+        event.accept()
 
 
 if __name__ == '__main__':
