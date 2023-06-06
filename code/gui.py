@@ -1,6 +1,7 @@
 import math
 from pprint import pprint
 from pathlib import Path
+import logging
 from PySide6.QtGui import QPixmap, QMouseEvent, QFont
 from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QTableWidgetItem, QTableWidget, QGridLayout, \
     QVBoxLayout, QSpacerItem, QSizePolicy, QAbstractItemView, QSpinBox
@@ -50,9 +51,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.main_widget)
 
         # create layout
-
         self.vbox = QGridLayout(self.main_widget)
-        # self.vbox = QVBoxLayout(self.main_widget)
         self.setLayout(self.vbox)
         self.vbox.setAlignment(Qt.AlignCenter)
         # self.vbox.setDirection(QBoxLayout.LeftToRight)
@@ -141,11 +140,15 @@ class MainWindow(QMainWindow):
 
     #   noinspection PyUnusedLocal
     def startTheTest(self, event: QMouseEvent):
-        print('startTheTest', self)
-        self.exam_window = ExamWindow()
+        multipliers = list(range(self.min_value.value(), self.max_value.value()))
+        generate = GenerateTasks()
+        tasks = generate.multiplication(multipliers, shuffle=False)
+        self.exam_window = ExamWindow(tasks)
         self.exam_window.showMaximized()
+        self.hide()
 
-    # noinspection PyUnusedLocal
+        # noinspection PyUnusedLocal
+
     def showMultiplicationTable(self, event: QMouseEvent):
         min_multiplier = self.min_value.value()
         max_multiplier = self.max_value.value()
@@ -281,21 +284,106 @@ class MultiplicationTableWindow(QWidget):
                     item.setTextAlignment(Qt.AlignLeft | Qt.AlignBottom)
 
 
+# noinspection PyUnresolvedReferences
+# noinspection PyMethodMayBeStatic
 class ExamWindow(QWidget):
 
-    def __init__(self):
+    def __init__(self, tasks: [Task]):
         super().__init__()
         self.setWindowTitle(' ')
-
         self.main_widget = QWidget()
-        # self.setCentralWidget(self.main_widget)
+
+        self.tasks = tasks
+        self.current_task_number = None
+        self.current_task = None
 
         # create layout
         self.vbox = QGridLayout(self.main_widget)
         self.setLayout(self.vbox)
         self.vbox.setAlignment(Qt.AlignCenter)
+
+        # create widgets
+        self.task_label = QLabel()
+        self.task_label.setText("? × ? = ")
+        self.answer = QSpinBox()
+        self.answer.setMaximum(1000)
+
+        self.nextTaskLabel = QLabel()
+        self.stopLabel = QLabel()
+
         # add items
         self.adjustSize()
+        self.configureIcons()
+
+        self.vbox.addWidget(self.stopLabel, 1, 4)
+
+        self.vbox.addWidget(self.task_label, 1, 1)
+        self.vbox.addWidget(self.answer, 1, 2)
+        self.vbox.addWidget(self.nextTaskLabel, 1, 3)
+
+        for widget in (self.task_label, self.answer, self.nextTaskLabel, self.stopLabel):
+            widget.setAlignment(Qt.AlignCenter)
+            widget.setFont(QFont('Arial', 80))
+
+    def configureIcons(self):
+        self.nextTaskLabel.setText('⏩')
+        self.stopLabel.setText('⏹')
+
+        self.nextTaskLabel.mousePressEvent = self.nextTaskPressed
+        self.stopLabel.mousePressEvent = self.stopPressed
+
+    def updateTaskLabel(self):
+        self.current_task.dot2comma = True
+        task_string = str(self.current_task).replace('*', '×')
+        self.task_label.setText(task_string)
+
+    def nextTask(self):
+        if self.current_task_number is None:
+            self.current_task_number = 0
+            self.current_task = self.tasks[self.current_task_number]
+        else:
+            max_number = len(self.tasks)
+            if self.current_task_number < max_number:
+                self.current_task_number += 1
+                self.current_task = self.tasks[self.current_task_number]
+            else:
+                raise IndexError
+
+    def nextTaskPressed(self, event: QMouseEvent):
+        if self.current_task is None:  # If the exam has just begun
+            self.nextTask()
+            self.updateTaskLabel()
+            self.current_task.startTimer()
+        else:
+            self.current_task.stopTimer()
+            self.current_task.user_answer = self.answer.value()
+            logging.debug(' '.join(str(x) for x in [self.current_task,
+                                                    self.current_task.solve(),
+                                                    self.current_task.user_answer,
+                                                    self.current_task.isCorrect()]
+                                   ))
+
+            self.nextTask()
+            self.updateTaskLabel()
+            self.current_task.startTimer()
+
+    def cycleSymbols(self, qlabel: QLabel, symbols: str):
+        uniq_symbols = ''.join(set([x for x in symbols]))
+        current_symbol = qlabel.text()
+        if current_symbol in uniq_symbols:
+            current_position = uniq_symbols.find(current_symbol)
+            next_symbol_index = current_position + 1
+            if next_symbol_index >= len(uniq_symbols):
+                next_symbol_index = 0
+            qlabel.setText(uniq_symbols[next_symbol_index])
+
+    def stopPressed(self, event: QMouseEvent):
+        # self.cycleSymbols(self.stopLabel, symbols='⏹⏸▷')
+        self.cycleSymbols(self.stopLabel, symbols='⏹■▣◀◁▶▷◽◾↪↩↵√Ꚙ∞±×⏸⏩')  # '⏹⏸▷' '⏹■▣◀◁▶▷◽◾↪↩↵√Ꚙ∞±×⏸⏩'
+
+    # def iterateOverTasks(self):
+    #     for task in self.tasks:
+    #         self.updateTaskLabel()
 
     def closeEvent(self, event):
         """
@@ -310,6 +398,8 @@ class ExamWindow(QWidget):
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG, filename="py_log.log", filemode="w",
+                        format="%(asctime)s %(levelname)s %(message)s")
     app = QApplication([])
     window = MainWindow()
     window.show()
@@ -319,3 +409,5 @@ if __name__ == '__main__':
     #  stopwatch - how long it takes to solve this example
     #  stopwatch - how long the entire session takes (solving time only)
     #  no text interface - only icons
+
+    # ■▣◀◁▶▷◼◽◾↪↩↵√Ꚙ∞±×⏸⏩

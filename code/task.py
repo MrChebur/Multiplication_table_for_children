@@ -57,6 +57,12 @@ class Task:
         return new_str
 
     def request_answer(self, validate=True):
+        """
+        Only for command line verison!
+
+        :param validate:
+        :return:
+        """
         print(self, end='')
         self.startTimer()
         # TODO pip install restricted_input https://pypi.org/project/restricted-input/ restrict user input in real time
