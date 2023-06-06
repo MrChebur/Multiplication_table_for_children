@@ -2,9 +2,11 @@ import math
 from pprint import pprint
 from pathlib import Path
 import logging
+from collections import OrderedDict
+
 from PySide6.QtGui import QPixmap, QMouseEvent, QFont
 from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QTableWidgetItem, QTableWidget, QGridLayout, \
-    QVBoxLayout, QSpacerItem, QSizePolicy, QAbstractItemView, QSpinBox
+    QVBoxLayout, QSpacerItem, QSizePolicy, QAbstractItemView, QSpinBox, QAbstractSpinBox
 from PySide6.QtCore import Qt
 from generate import GenerateTasks
 from screeninfo import get_monitors
@@ -306,6 +308,7 @@ class ExamWindow(QWidget):
         self.task_label = QLabel()
         self.task_label.setText("? × ? = ")
         self.answer = QSpinBox()
+        self.answer.setButtonSymbols(QAbstractSpinBox.NoButtons)  # hide spinbox arrows
         self.answer.setMaximum(1000)
 
         self.nextTaskLabel = QLabel()
@@ -354,32 +357,45 @@ class ExamWindow(QWidget):
             self.nextTask()
             self.updateTaskLabel()
             self.current_task.startTimer()
+            self.answer.cleanText()
+            # TODO Clear spinbox value
+            # TODO Move keyboard cursor to spinbox
         else:
             self.current_task.stopTimer()
             self.current_task.user_answer = self.answer.value()
-            logging.debug(' '.join(str(x) for x in [self.current_task,
-                                                    self.current_task.solve(),
-                                                    self.current_task.user_answer,
-                                                    self.current_task.isCorrect()]
-                                   ))
+            logging.info(' '.join(str(x) for x in [self.current_task,
+                                                   self.current_task.solve(),
+                                                   self.current_task.user_answer,
+                                                   self.current_task.isCorrect(),
+                                                   self.current_task.time_elapsed,
+                                                   ]
+                                  ))
 
             self.nextTask()
             self.updateTaskLabel()
             self.current_task.startTimer()
+            self.answer.cleanText()
+            # TODO Clear spinbox value
+            # TODO Move keyboard cursor to spinbox
 
     def cycleSymbols(self, qlabel: QLabel, symbols: str):
-        uniq_symbols = ''.join(set([x for x in symbols]))
+        """
+        :param qlabel: QLabel
+        :param symbols: Characters that will be cycled.
+        :return:
+        """
+        uniq_symbols = ''.join(list(OrderedDict.fromkeys([x for x in symbols])))
         current_symbol = qlabel.text()
-        if current_symbol in uniq_symbols:
-            current_position = uniq_symbols.find(current_symbol)
-            next_symbol_index = current_position + 1
-            if next_symbol_index >= len(uniq_symbols):
-                next_symbol_index = 0
-            qlabel.setText(uniq_symbols[next_symbol_index])
+        if current_symbol not in uniq_symbols:
+            current_symbol = uniq_symbols[0]
+        current_position = uniq_symbols.find(current_symbol)
+        next_symbol_index = current_position + 1
+        if next_symbol_index >= len(uniq_symbols):
+            next_symbol_index = 0
+        qlabel.setText(uniq_symbols[next_symbol_index])
 
     def stopPressed(self, event: QMouseEvent):
-        # self.cycleSymbols(self.stopLabel, symbols='⏹⏸▷')
-        self.cycleSymbols(self.stopLabel, symbols='⏹■▣◀◁▶▷◽◾↪↩↵√Ꚙ∞±×⏸⏩')  # '⏹⏸▷' '⏹■▣◀◁▶▷◽◾↪↩↵√Ꚙ∞±×⏸⏩'
+        self.cycleSymbols(self.stopLabel, symbols='⏹⏸')  # '⏹⏸▷' '⏹■▣◀◁▶▷◽◾↪↩↵√Ꚙ∞±×⏸⏩'
 
     # def iterateOverTasks(self):
     #     for task in self.tasks:
