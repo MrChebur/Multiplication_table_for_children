@@ -144,7 +144,7 @@ class MainWindow(QMainWindow):
     def startTheTest(self, event: QMouseEvent):
         multipliers = list(range(self.min_value.value(), self.max_value.value()))
         generate = GenerateTasks()
-        tasks = generate.multiplication(multipliers, shuffle=False)
+        tasks = generate.multiplication(multipliers, shuffle=True)
         self.exam_window = ExamWindow(tasks)
         self.exam_window.showMaximized()
         self.hide()
@@ -158,6 +158,10 @@ class MainWindow(QMainWindow):
         self.multiplication_table_window = MultiplicationTableWindow(min_multiplier, max_multiplier)
         self.multiplication_table_window.showMaximized()
         self.hide()  # OR self.close() ?
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            self.close()
 
 
 # noinspection PyUnresolvedReferences
@@ -241,7 +245,7 @@ class MultiplicationTableWindow(QWidget):
             if multiplier1 not in groups:
                 groups[multiplier1] = []
             groups[multiplier1].append(task)
-            print(str(task) + str(task.solve()))
+            # print(str(task) + str(task.solve()))
         return groups
 
     def fill_table(self, min_multiplier, max_multiplier):
@@ -285,6 +289,10 @@ class MultiplicationTableWindow(QWidget):
                 if item is not None:
                     item.setTextAlignment(Qt.AlignLeft | Qt.AlignBottom)
 
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            self.close()
+
 
 # noinspection PyUnresolvedReferences
 # noinspection PyMethodMayBeStatic
@@ -292,6 +300,7 @@ class ExamWindow(QWidget):
 
     def __init__(self, tasks: [Task]):
         super().__init__()
+        self.results_window = None
         self.setWindowTitle(' ')
         self.main_widget = QWidget()
 
@@ -306,25 +315,29 @@ class ExamWindow(QWidget):
 
         # create widgets
         self.task_label = QLabel()
-        self.task_label.setText("? × ? = ")
+        self.task_label.setText('? × ? = ')
         self.answer = QSpinBox()
+        self.answer.setDisabled(True)
+        self.answer.setSpecialValueText(' ')
         self.answer.setButtonSymbols(QAbstractSpinBox.NoButtons)  # hide spinbox arrows
         self.answer.setMaximum(1000)
 
         self.nextTaskLabel = QLabel()
         self.stopLabel = QLabel()
+        self.tasks_left_label = QLabel()
+        self.tasks_left_label.setText(f'0/{len(self.tasks)}')
 
         # add items
         self.adjustSize()
         self.configureIcons()
 
-        self.vbox.addWidget(self.stopLabel, 1, 4)
-
+        # self.vbox.addWidget(self.stopLabel, 1, 4)
         self.vbox.addWidget(self.task_label, 1, 1)
         self.vbox.addWidget(self.answer, 1, 2)
         self.vbox.addWidget(self.nextTaskLabel, 1, 3)
+        self.vbox.addWidget(self.tasks_left_label, 1, 5)
 
-        for widget in (self.task_label, self.answer, self.nextTaskLabel, self.stopLabel):
+        for widget in (self.task_label, self.answer, self.nextTaskLabel, self.stopLabel, self.tasks_left_label):
             widget.setAlignment(Qt.AlignCenter)
             widget.setFont(QFont('Arial', 80))
 
@@ -345,22 +358,24 @@ class ExamWindow(QWidget):
             self.current_task_number = 0
             self.current_task = self.tasks[self.current_task_number]
         else:
-            max_number = len(self.tasks)
+            max_number = len(self.tasks) - 1
             if self.current_task_number < max_number:
                 self.current_task_number += 1
                 self.current_task = self.tasks[self.current_task_number]
-            else:
-                raise IndexError
 
     def nextTaskPressed(self, event: QMouseEvent):
         if self.current_task is None:  # If the exam has just begun
-            self.nextTask()
-            self.updateTaskLabel()
-            self.current_task.startTimer()
-            self.answer.cleanText()
-            # TODO Clear spinbox value
-            # TODO Move keyboard cursor to spinbox
+            self.answer.setEnabled(True)
+            self.answer.setFocus()
         else:
+
+            # do nothing if no new value is entered
+            if self.answer.value() == self.answer.minimum():
+                if self.current_task.solve() == self.answer.minimum():
+                    pass
+                else:
+                    return
+
             self.current_task.stopTimer()
             self.current_task.user_answer = self.answer.value()
             logging.info(' '.join(str(x) for x in [self.current_task,
@@ -368,15 +383,23 @@ class ExamWindow(QWidget):
                                                    self.current_task.user_answer,
                                                    self.current_task.isCorrect(),
                                                    self.current_task.time_elapsed,
-                                                   ]
-                                  ))
+                                                   ]))
 
-            self.nextTask()
-            self.updateTaskLabel()
-            self.current_task.startTimer()
-            self.answer.cleanText()
-            # TODO Clear spinbox value
-            # TODO Move keyboard cursor to spinbox
+            # If it was the last task - show results
+            if self.current_task_number + 1 == len(self.tasks):
+                sorted_tasks = self.tasks.copy()
+                sorted_tasks.sort()
+                self.results_window = ResultsWindow(sorted_tasks, self)
+                self.results_window.show()
+                self.hide()
+
+        self.nextTask()
+        self.updateTaskLabel()
+        self.tasks_left_label.setText(f'{self.current_task_number + 1}/{len(self.tasks)}')
+        self.answer.setValue(0)
+        self.answer.selectAll()
+        self.answer.setFocus()
+        self.current_task.startTimer()
 
     def cycleSymbols(self, qlabel: QLabel, symbols: str):
         """
@@ -397,9 +420,11 @@ class ExamWindow(QWidget):
     def stopPressed(self, event: QMouseEvent):
         self.cycleSymbols(self.stopLabel, symbols='⏹⏸')  # '⏹⏸▷' '⏹■▣◀◁▶▷◽◾↪↩↵√Ꚙ∞±×⏸⏩'
 
-    # def iterateOverTasks(self):
-    #     for task in self.tasks:
-    #         self.updateTaskLabel()
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+            self.nextTaskPressed(event)
+        if event.key() == Qt.Key_Escape:
+            self.close()
 
     def closeEvent(self, event):
         """
@@ -410,6 +435,81 @@ class ExamWindow(QWidget):
         main_window = findMainWindow()
         if main_window is not None:
             main_window.show()
+        event.accept()
+
+
+class ResultsWindow(QWidget):
+
+    def __init__(self, tasks: [Task], exam_window_class: QWidget):
+        super().__init__()
+        self.setWindowTitle(' ')
+        self.main_widget = QWidget()
+
+        self.tasks = tasks
+        self.exam_window_class = exam_window_class
+        self.time_ranges = {'fast': [0, 5, 'green'],
+                            'medium': [5, 10, 'orange'],
+                            'slow': [10, float('inf'), 'red'],
+                            }
+
+        # create layout
+        self.vbox = QGridLayout(self.main_widget)
+        self.setLayout(self.vbox)
+        self.vbox.setAlignment(Qt.AlignCenter)
+
+        # create widgets
+        self.results_label = QLabel()
+
+        results = self.generateResultsString()
+        self.results_label.setText(results)
+        self.vbox.addWidget(self.results_label, 1, 1)
+        self.results_label.setAlignment(Qt.AlignLeft)
+        self.results_label.setFont(QFont('Arial', 12))
+
+    def generateResultsString(self):
+        HTML_NEWLINE = '<br>'
+        lines = []
+
+        for task in self.tasks:
+
+            # colorizing results
+            if task.isCorrect():
+                results_color = 'green'
+            else:
+                results_color = 'red'
+
+            # colorizing elapsed time
+            time_color = None
+            for key in self.time_ranges.keys():
+                if self.time_ranges[key][0] <= task.time_elapsed <= self.time_ranges[key][1]:
+                    time_color = self.time_ranges[key][2]
+                    break
+            assert time_color is not None
+
+            task_line = f'{str(task)}{task.solve()}'
+            user_anser_line = f"({str(task.user_answer)})"
+            colored_line = f"{task_line} <span style='color: {results_color};'>{user_anser_line}</span>"
+            colored_time = f"<span style='color: {time_color};'>⌛ {task.time_elapsed}</span>"
+
+            lines.append(colored_line + colored_time)
+
+        results = HTML_NEWLINE.join(lines)
+        return results
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            self.close()
+
+    def closeEvent(self, event):
+        """
+        Overwrites `closeEvent` to display the main window after closing the table.
+        :param event:
+        :return:
+        """
+        main_window = findMainWindow()
+        if main_window is not None:
+            main_window.show()
+        self.exam_window_class.close()
         event.accept()
 
 
@@ -427,3 +527,6 @@ if __name__ == '__main__':
     #  no text interface - only icons
 
     # ■▣◀◁▶▷◼◽◾↪↩↵√Ꚙ∞±×⏸⏩
+
+# todo: use this symbol ✍ (writing hand) instead of Start_the_test.png?
+# todo: results windows with scrollbar
