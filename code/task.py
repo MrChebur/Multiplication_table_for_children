@@ -7,6 +7,7 @@ class Task:
     user_answer = None
     start_time = None
     time_elapsed = None
+    response_speed = None
     dot2comma = True
     asterisk2multiplication_sign = True
 
@@ -29,6 +30,25 @@ class Task:
         if self.user_answer == self.solve():
             return True
         return False
+
+    def measureAnsweringSpeed(self):
+        medium_value = 10
+        fast_value = 5
+
+        if self.time_elapsed is None:
+            raise AttributeError('The answer has not yet been given. '
+                                 'It is not possible to measure the speed of the response.')
+        elif 0 <= self.time_elapsed <= fast_value:
+            self.response_speed = 'fast'
+            return 'fast'
+        elif fast_value < self.time_elapsed <= medium_value:
+            self.response_speed = 'medium'
+            return 'medium'
+        elif self.time_elapsed > medium_value:
+            self.response_speed = 'slow'
+            return 'slow'
+        else:
+            raise ValueError(f'Strange `self.time_elapsed` value={self.time_elapsed}')
 
     def _checkParameters(self):
         """Check parameters to make sure they don't harm us with `eval()` function.
