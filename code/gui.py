@@ -2,6 +2,7 @@ import math
 from pprint import pprint
 from pathlib import Path
 import logging
+from datetime import datetime
 from collections import OrderedDict
 
 from PySide6.QtGui import QPixmap, QMouseEvent, QFont
@@ -514,7 +515,9 @@ class ResultsWindow(QWidget):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG, filename="py_log.log", filemode="w",
+    current_time = datetime.now()
+    time_stamp = datetime.now().strftime('%Y.%m.%d_%H-%M-%S')
+    logging.basicConfig(level=logging.DEBUG, filename=f"py_log_{time_stamp}.log", filemode="w",
                         format="%(asctime)s %(levelname)s %(message)s")
     app = QApplication([])
     window = MainWindow()

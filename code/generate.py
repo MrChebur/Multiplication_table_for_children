@@ -208,12 +208,13 @@ if __name__ == '__main__':
     # for t in tsks:
     #     print(t, t.solve())
     #
-    # print()
-    #
-    # tsks = g.division(multipliers_, shuffle=False)
-    # for t in tsks:
-    #     print(t, t.solve())
 
+    print()
+    tsks = g.division(multipliers_, shuffle=False)
+    for t in tsks:
+        print(t, t.solve())
+
+    print()
     tsks = g.difference(multipliers_, shuffle=False, limit=10)
     tsks.sort()
     for t in tsks:
