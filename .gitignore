@@ -1,0 +1,8 @@
+# created by virtualenv automatically
+/*
+*.pyc
+/code/py_log_*.log
+/code/!*
+
+!/code
+!.gitignore
