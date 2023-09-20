@@ -1,6 +1,7 @@
 # todo Not implemented
-class Statistic:
 
+# noinspection PyMethodMayBeStatic
+class Statistic:
     test_results = None
     slow = 10
     medium = 10
