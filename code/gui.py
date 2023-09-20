@@ -524,7 +524,7 @@ if __name__ == '__main__':
     window.show()
     app.exec()
 
-    # todo
+    # todo:
     #  stopwatch - how long it takes to solve this example
     #  stopwatch - how long the entire session takes (solving time only)
     #  no text interface - only icons
@@ -532,4 +532,5 @@ if __name__ == '__main__':
     # ■▣◀◁▶▷◼◽◾↪↩↵√Ꚙ∞±×⏸⏩
 
 # todo: use this symbol ✍ (writing hand) instead of Start_the_test.png?
-# todo: results windows with scrollbar
+# todo: add scrollbar in the results windows
+# todo: tasks in the results window should be separated into 4 columns: wrong, slow, medium, fast

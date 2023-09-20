@@ -76,7 +76,6 @@ class Task:
         """
         print(self, end='')
         self.startTimer()
-        # TODO pip install restricted_input https://pypi.org/project/restricted-input/ restrict user input in real time
         self.user_answer = float(input())
         self.stopTimer()
         if validate:
