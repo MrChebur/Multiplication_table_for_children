@@ -1,11 +1,13 @@
 # created by virtualenv automatically
 /*
 *.pyc
-/code/py_log_*.log
 /code/!*
 /code/build/*
 /code/dist/*
 
+/code/Z_create_exe_file.bat
+/code/gui.spec
+/code/py_log_*.log
+
 !/code
 !.gitignore
-/code/Z_create_exe_file.bat
