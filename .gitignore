@@ -3,6 +3,8 @@
 *.pyc
 /code/py_log_*.log
 /code/!*
+/code/build/*
+/code/dist/*
 
 !/code
 !.gitignore
