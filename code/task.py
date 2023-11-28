@@ -85,7 +85,24 @@ class Task:
 
     def __lt__(self, other):
         """overload to implement .sort() in [Task]"""
-        return self.task_string < other.task_string
+        # noinspection PyProtectedMember
+        return self._get_numbers() < other._get_numbers()
+
+    def _get_numbers(self):
+        SPLITTER = '%SPLITTER%'
+        new_task_string = self.task_string
+        for operator in self.__supported_operators:
+            if operator == ' ':
+                continue
+            new_task_string = new_task_string.replace(operator, SPLITTER)
+
+        task_numbers = new_task_string.split(SPLITTER)
+        task_numbers = [float(number) for number in task_numbers]
+
+        # print(self.task_string)
+        # print(task_numbers)
+
+        return task_numbers
 
     def request_answer(self, validate=True):
         """
@@ -133,19 +150,38 @@ if __name__ == '__main__':
     #     '1 * 3',
     # ]
 
-    tasks = [
-        Task('2.1 * 5'),
-        Task('5 * 4'),
-        Task('1 / 3'),
-    ]
+    # tasks = [
+    #     Task('2.1 * 5'),
+    #     Task('5 * 4'),
+    #     Task('1 / 3'),
+    #     Task('10 + 1'),
+    #     Task('1 + 1'),
+    #     Task('1 + 5'),
+    #     Task('20 + 5'),
+    #     Task('30 + 10'),
+    # ]
 
-    print(tasks)
+    # for t in tasks:
+    #     t._get_numbers()
+
+    import random
+    from generate import GenerateTasks
+
+    tasks = GenerateTasks().multiplication(list(range(0, 12)), shuffle=False)
+
+    print(f'\ntasks sorted')
+    for t in tasks:
+        print(t)
+
+    random.shuffle(tasks)
+
+    print(f'\ntasks shuffled')
     for t in tasks:
         print(t)
 
     sorted_tasks = tasks.copy()
-    sorted_tasks.sort()
+    sorted_tasks = sorted(sorted_tasks)
 
-    print(sorted_tasks)
+    print(f'\ntasks.copy() sorted')
     for t in sorted_tasks:
         print(str(t))

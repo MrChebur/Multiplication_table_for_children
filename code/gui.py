@@ -1,4 +1,5 @@
 import math
+import random
 from functools import partial
 import logging
 from datetime import datetime
@@ -70,7 +71,7 @@ class MainWindow(QMainWindow):
         self.difference_label.setText('1 - 1 = 0')
 
         self.multiply_label = QPushButton()
-        self.multiply_label.setText('2 х 2 = 4')
+        self.multiply_label.setText('2 × 2 = 4')
 
         self.devision_label = QPushButton()
         self.devision_label.setText('6 ÷ 3 = 2')
@@ -94,8 +95,8 @@ class MainWindow(QMainWindow):
     def configureButtons(self):
         self.memorizeLabel.mousePressEvent = self.showMultiplicationTable
 
-        tasks_summ = GenerateTasks().sum(list(range(0, 11)), limit=10)  # summing in range 0-10 max answer 10
-        tasks_difference = GenerateTasks().difference(list(range(10, 0, -1)))  # difference in rng 10-1, max minuend 10
+        tasks_summ = GenerateTasks().sum(list(range(1, 11)), limit=10)  # summing in range 0-10 max answer 10
+        tasks_difference = GenerateTasks().difference(list(range(10, 1, -1)))  # difference in rng 10-1, max minuend 10
         tasks_multiply = GenerateTasks().multiplication(list(range(2, 10)))  # multiplying in range 2-9
         tasks_division = GenerateTasks().division(list(range(9, 1, -1)))  # division in range 9-2
 
@@ -106,9 +107,7 @@ class MainWindow(QMainWindow):
 
     # noinspection PyUnusedLocal
     def startTheTest(self, tasks: [Task], event: QMouseEvent):
-        # multipliers = list(range(self.min_value.value(), self.max_value.value()))
-        # generate = GenerateTasks()
-        # tasks = generate.multiplication(multipliers, shuffle=True)
+        random.shuffle(tasks)
         self.exam_window = ExamWindow(tasks)
         self.exam_window.showMaximized()
         self.hide()
@@ -223,7 +222,7 @@ class MultiplicationTableWindow(QWidget):
             text = ''
             for task in tasks_list:
                 text += str(task) + str(task.solve()) + NO_BREAK_SPACE * 3 + NEW_LINE
-            text = text.replace('*', 'x')
+            text = text.replace('*', '×')
             item = QTableWidgetItem(text)
             self.table.setItem(row, column, item)
 
@@ -403,6 +402,13 @@ class ResultsWindow(QWidget):
                             'slow': [10, float('inf'), 'red'],
                             }
 
+        self.results_summary_count = {'correct': 0,
+                                      'incorrect': 0,
+                                      'fast': 0,
+                                      'medium': 0,
+                                      'slow': 0,
+                                      }
+
         # create layout
         self.vbox = QGridLayout(self.main_widget)
         self.setLayout(self.vbox)
@@ -411,17 +417,32 @@ class ResultsWindow(QWidget):
         # create widgets
         results = self.generateResultsStrings()
 
+        column = 0
         for num, line in enumerate(results, start=1):
             column = math.ceil(num / 10) - 1
-            row = num - column * 10
+            row = 2 + num - column * 10
             self.results_label = QLabel()
             self.results_label.setText(line)
             self.vbox.addWidget(self.results_label, row, column)
             self.results_label.setAlignment(Qt.AlignLeft)
-            self.results_label.setFont(QFont('Arial', 12))
+            self.results_label.setFont(QFont('Arial', 16))
+
+        # summary label
+        SEPARATOR = '&nbsp;' * 3
+        self.summary_results_label = QLabel()
+        self.summary_results_label.setText(
+            f"❌ {self.results_summary_count['incorrect']}{SEPARATOR}"
+            f"✅ {self.results_summary_count['correct']}{SEPARATOR}"
+            f"⌛ <span style='color: {'green'};'> {self.results_summary_count['fast']} </span>{SEPARATOR}"
+            f"⌛ <span style='color: {'orange'};'> {self.results_summary_count['medium']} </span>{SEPARATOR}"
+            f"⌛ <span style='color: {'red'};'> {self.results_summary_count['slow']} </span>{SEPARATOR}"
+
+        )
+        self.vbox.addWidget(self.summary_results_label, 0, 0, 1, column + 1)
+        self.summary_results_label.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
+        self.summary_results_label.setFont(QFont('Arial', 16))
 
     def generateResultsStrings(self):
-        HTML_NEWLINE = '<br>'
         lines = []
 
         for task in self.tasks:
@@ -429,14 +450,17 @@ class ResultsWindow(QWidget):
             # colorizing results
             if task.isCorrect():
                 results_color = 'green'
+                self.results_summary_count['correct'] += 1
             else:
                 results_color = 'red'
+                self.results_summary_count['incorrect'] += 1
 
             # colorizing elapsed time
             time_color = None
             for key in self.time_ranges.keys():
                 if self.time_ranges[key][0] <= task.time_elapsed <= self.time_ranges[key][1]:
                     time_color = self.time_ranges[key][2]
+                    self.results_summary_count[key] += 1
                     break
             assert time_color is not None
 
@@ -446,8 +470,6 @@ class ResultsWindow(QWidget):
             colored_time = f"<span style='color: {time_color};'>⌛ {task.time_elapsed}</span>"
 
             lines.append(colored_line + colored_time)
-
-        # results = HTML_NEWLINE.join(lines)
         return lines
 
     def keyPressEvent(self, event):
@@ -476,6 +498,3 @@ if __name__ == '__main__':
     window = MainWindow()
     window.show()
     app.exec()
-
-# todo: add scrollbar in the results windows
-# todo: tasks in the results window should be separated into 4 columns: wrong, slow, medium, fast
