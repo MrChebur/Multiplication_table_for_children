@@ -1,13 +1,12 @@
 import math
-from pprint import pprint
-from pathlib import Path
+from functools import partial
 import logging
 from datetime import datetime
 from collections import OrderedDict
 
 from PySide6.QtGui import QPixmap, QMouseEvent, QFont
 from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QTableWidgetItem, QTableWidget, QGridLayout, \
-    QVBoxLayout, QSpacerItem, QSizePolicy, QAbstractItemView, QSpinBox, QAbstractSpinBox
+    QVBoxLayout, QSpacerItem, QSizePolicy, QAbstractItemView, QSpinBox, QAbstractSpinBox, QPushButton
 from PySide6.QtCore import Qt
 from generate import GenerateTasks
 from screeninfo import get_monitors
@@ -59,104 +58,64 @@ class MainWindow(QMainWindow):
         self.vbox.setAlignment(Qt.AlignCenter)
         # self.vbox.setDirection(QBoxLayout.LeftToRight)
 
-        # create icons
-        self.memorizeLabel = QLabel(self)
-        self.startTheTestLabel = QLabel(self)
-
         # create labels
-        self.min_value_label = QLabel()
-        self.min_value_label.setText('2 х 2 = 4')
+        self.memorizeLabel = QLabel(self)
+        self.memorizeLabel.setText('💡')
 
-        self.dots_label = QLabel()
-        self.dots_label.setText('.......')
+        # create buttons
+        self.sum_label = QPushButton()
+        self.sum_label.setText('1 + 1 = 2')
 
-        self.max_value_label = QLabel()
-        self.max_value_label.setText('9 х 9 = 81')
+        self.difference_label = QPushButton()
+        self.difference_label.setText('1 - 1 = 0')
 
-        # create spin boxes
-        self.min_value = QSpinBox()
-        self.max_value = QSpinBox()
-        self.min_value.setValue(2)
-        self.max_value.setValue(9)
-        self.min_value.setMinimum(2)
-        self.min_value.setMaximum(9)
-        self.max_value.setMinimum(2)
-        self.max_value.setMaximum(20)
-        self.min_value.valueChanged.connect(self.updateMinValueLabel)
-        self.max_value.valueChanged.connect(self.updateMaxValueLabel)
+        self.multiply_label = QPushButton()
+        self.multiply_label.setText('2 х 2 = 4')
+
+        self.devision_label = QPushButton()
+        self.devision_label.setText('6 ÷ 3 = 2')
 
         # set font size and alignment
-        for widget in (self.min_value_label, self.dots_label, self.max_value_label, self.min_value, self.max_value):
-            widget.setAlignment(Qt.AlignCenter)
-            widget.setFont(QFont('Arial', 15))
+        for widget in (self.sum_label, self.difference_label, self.multiply_label, self.devision_label):
+            # widget.setAlignment(Qt.AlignCenter)
+            widget.setFont(QFont('Arial', 20))
+        # overwrite size
+        self.memorizeLabel.setFont(QFont('Arial', 120))
 
         # add items
-        self.configureIcons()
-        self.vbox.addWidget(self.min_value_label, 0, 0)
-        self.vbox.addWidget(self.dots_label, 1, 0)
-        self.vbox.addWidget(self.max_value_label, 2, 0)
-
-        self.vbox.addWidget(self.min_value, 0, 1)
-        self.vbox.addWidget(self.max_value, 2, 1)
-
-        self.vbox.addWidget(self.memorizeLabel, 3, 0)
-        self.vbox.addWidget(self.startTheTestLabel, 3, 1)
-
+        self.configureButtons()
+        self.vbox.addWidget(self.sum_label, 0, 1)
+        self.vbox.addWidget(self.difference_label, 1, 1)
+        self.vbox.addWidget(self.multiply_label, 2, 1)
+        self.vbox.addWidget(self.devision_label, 3, 1)
+        self.vbox.addWidget(self.memorizeLabel, 0, 0, 4, 1)
         self.adjustSize()
 
-    def updateMinValueLabel(self):
-        min_value = self.min_value.value()
-        self.min_value_label.setText(f'{min_value} х {min_value} = {min_value * min_value}')
-        self.max_value.setMinimum(min_value)
-
-    def updateMaxValueLabel(self):
-        max_value = self.max_value.value()
-        if max_value < 9:
-            second_multiplier = 9
-        else:
-            second_multiplier = max_value
-
-        self.max_value_label.setText(f'{max_value} х {second_multiplier} = {max_value * second_multiplier}')
-        self.min_value.setMaximum(max_value)
-
-    def configureIcons(self):
-        icon_x_size, icon_y_size = 200, 200
-
-        self.startTheTestLabel.setFixedHeight(icon_y_size)
-        self.startTheTestLabel.setFixedWidth(icon_x_size)
-
-        self.memorizeLabel.setFixedHeight(icon_y_size)
-        self.memorizeLabel.setFixedWidth(icon_x_size)
-
-        current_py_file = Path(__file__)
-        main_folder = current_py_file.parents[1]
-        icons_folder = main_folder.joinpath('icons')
-        memorize_icon = icons_folder.joinpath('Memorize.png')
-        start_the_test_icon = icons_folder.joinpath('Start_the_test.png')
-        memorizePixmap = QPixmap(str(memorize_icon))
-        startTheTestPixmap = QPixmap(str(start_the_test_icon))
-
-        self.memorizeLabel.setPixmap(memorizePixmap)
-        self.startTheTestLabel.setPixmap(startTheTestPixmap)
+    def configureButtons(self):
         self.memorizeLabel.mousePressEvent = self.showMultiplicationTable
-        self.startTheTestLabel.mousePressEvent = self.startTheTest
 
-    #   noinspection PyUnusedLocal
-    def startTheTest(self, event: QMouseEvent):
-        multipliers = list(range(self.min_value.value(), self.max_value.value()))
-        generate = GenerateTasks()
-        tasks = generate.multiplication(multipliers, shuffle=True)
+        tasks_summ = GenerateTasks().sum(list(range(0, 11)), limit=10)  # summing in range 0-10 max answer 10
+        tasks_difference = GenerateTasks().difference(list(range(10, 0, -1)))  # difference in rng 10-1, max minuend 10
+        tasks_multiply = GenerateTasks().multiplication(list(range(2, 10)))  # multiplying in range 2-9
+        tasks_division = GenerateTasks().division(list(range(9, 1, -1)))  # division in range 9-2
+
+        self.sum_label.mousePressEvent = partial(self.startTheTest, tasks_summ)
+        self.difference_label.mousePressEvent = partial(self.startTheTest, tasks_difference)
+        self.multiply_label.mousePressEvent = partial(self.startTheTest, tasks_multiply)
+        self.devision_label.mousePressEvent = partial(self.startTheTest, tasks_division)
+
+    # noinspection PyUnusedLocal
+    def startTheTest(self, tasks: [Task], event: QMouseEvent):
+        # multipliers = list(range(self.min_value.value(), self.max_value.value()))
+        # generate = GenerateTasks()
+        # tasks = generate.multiplication(multipliers, shuffle=True)
         self.exam_window = ExamWindow(tasks)
         self.exam_window.showMaximized()
         self.hide()
 
-        # noinspection PyUnusedLocal
-
+    # noinspection PyUnusedLocal
     def showMultiplicationTable(self, event: QMouseEvent):
-        min_multiplier = self.min_value.value()
-        max_multiplier = self.max_value.value()
-
-        self.multiplication_table_window = MultiplicationTableWindow(min_multiplier, max_multiplier)
+        self.multiplication_table_window = MultiplicationTableWindow(2, 9)
         self.multiplication_table_window.showMaximized()
         self.hide()  # OR self.close() ?
 
@@ -184,7 +143,7 @@ class MultiplicationTableWindow(QWidget):
         self.table.setSelectionMode(QAbstractItemView.NoSelection)
 
         # set font parameters
-        self.default_font_size = 33
+        self.default_font_size = 32
         resized_font_size = adjustFontSize(self.default_font_size)
         self.table.setFont(QFont('Arial', resized_font_size))
 
@@ -250,13 +209,6 @@ class MultiplicationTableWindow(QWidget):
         return groups
 
     def fill_table(self, min_multiplier, max_multiplier):
-        # todo: 1 добавить возможность вывода таблицы умножения с повторениями предыдущих значений
-        #  добавить переключатель кнопкой
-
-        # todo: 2 неверно работает таблица, если указать только таблицу умножения на число Х, например, 2
-        #  должна выводиться полная таблица умножения начиная с 2*2 до 2*9
-        #  видимо, надо переделать генератор задач в generate.py
-
         NO_BREAK_SPACE = ' '
         NEW_LINE = '\n'
         column_max, row_max = self.table.columnCount(), self.table.rowCount()
@@ -264,10 +216,8 @@ class MultiplicationTableWindow(QWidget):
         generate = GenerateTasks()
         tasks = generate.multiplication(multipliers, shuffle=False)
         groups = self.groupTasksByMultiplier(tasks)
-        pprint(groups)
 
         row, column = 0, 0
-        print(min_multiplier, max_multiplier)
         for group_number in range(min_multiplier, max_multiplier):
             tasks_list = groups[str(group_number)]
             text = ''
@@ -461,13 +411,13 @@ class ResultsWindow(QWidget):
         # create widgets
         self.results_label = QLabel()
 
-        results = self.generateResultsString()
+        results = self.generateResultsStrings()
         self.results_label.setText(results)
         self.vbox.addWidget(self.results_label, 1, 1)
         self.results_label.setAlignment(Qt.AlignLeft)
         self.results_label.setFont(QFont('Arial', 12))
 
-    def generateResultsString(self):
+    def generateResultsStrings(self):
         HTML_NEWLINE = '<br>'
         lines = []
 
@@ -524,13 +474,5 @@ if __name__ == '__main__':
     window.show()
     app.exec()
 
-    # todo:
-    #  stopwatch - how long it takes to solve this example
-    #  stopwatch - how long the entire session takes (solving time only)
-    #  no text interface - only icons
-
-    # ■▣◀◁▶▷◼◽◾↪↩↵√Ꚙ∞±×⏸⏩
-
-# todo: use this symbol ✍ (writing hand) instead of Start_the_test.png?
 # todo: add scrollbar in the results windows
 # todo: tasks in the results window should be separated into 4 columns: wrong, slow, medium, fast
