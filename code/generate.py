@@ -114,6 +114,7 @@ class GenerateTasks:
             random.shuffle(tasks)
         return tasks
 
+    # There was an idea of teaching to read simple syllables, but it cannot be implemented without the teacher present.
     def russian_syllables(self, shuffle=True, skip_censored=True):
         """
         Source:
@@ -181,47 +182,3 @@ class GenerateTasks:
             random.shuffle(syllables)
 
         return syllables
-
-
-if __name__ == '__main__':
-    g = GenerateTasks()
-
-    print('division in range 9-2, checked - ok')
-    multipliers_ = list(range(9, 1, -1))
-    print(multipliers_)
-    tsks = g.division(multipliers_, shuffle=False)
-    print(len(tsks))
-    for t in tsks:
-        print(t, t.solve())
-
-    print('difference in range 10-1, max minuend 10, checked - ok')
-    values_ = list(range(10, 0, -1))
-    print(values_)
-    tsks = g.difference(values_, shuffle=False)
-    tsks.sort()
-    print(len(tsks))
-    for t in tsks:
-        print(t, t.solve())
-
-    print('summing in range 0-10 max answer 10, checked - ok')
-    summands_ = list(range(0, 11))
-    tsks = g.sum(summands_, shuffle=False, limit=10)
-    print(len(tsks))
-    for t in tsks:
-        print(t, t.solve())
-
-    print('multiplying in range 2-9, checked - ok')
-    multipliers_ = list(range(2, 10))
-    print(multipliers_)
-    tsks = g.multiplication(multipliers_, shuffle=False)
-    print(len(tsks))
-    for t in tsks:
-        print(t, t.solve())
-
-    # s = g.russian_syllables(shuffle=False)
-    # print(s)
-    # print(len(s))
-    #
-    # s = g.russian_syllables(shuffle=False, skip_censored=False)
-    # print(s)
-    # print(len(s))
