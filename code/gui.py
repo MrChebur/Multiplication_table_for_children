@@ -5,7 +5,7 @@ import logging
 from datetime import datetime
 from collections import OrderedDict
 
-from PySide6.QtGui import QMouseEvent, QFont
+from PySide6.QtGui import QMouseEvent, QFont, QKeyEvent
 from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QTableWidgetItem, QTableWidget, QGridLayout, \
     QVBoxLayout, QSpacerItem, QSizePolicy, QAbstractItemView, QSpinBox, QAbstractSpinBox, QPushButton
 from PySide6.QtCore import Qt
@@ -313,7 +313,8 @@ class ExamWindow(QWidget):
                 self.current_task_number += 1
                 self.current_task = self.tasks[self.current_task_number]
 
-    def nextTaskPressed(self, event: QMouseEvent):
+    # noinspection PyUnusedLocal
+    def nextTaskPressed(self, event: QMouseEvent | QKeyEvent):
         if self.current_task is None:  # If the exam has just begun
             self.answer.setEnabled(True)
             self.answer.setFocus()
@@ -367,6 +368,7 @@ class ExamWindow(QWidget):
             next_symbol_index = 0
         qlabel.setText(uniq_symbols[next_symbol_index])
 
+    # noinspection PyUnusedLocal
     def stopPressed(self, event: QMouseEvent):
         self.cycleSymbols(self.stopLabel, symbols='⏹⏸')  # '⏹⏸▷' '⏹■▣◀◁▶▷◽◾↪↩↵√Ꚙ∞±×⏸⏩'
 
