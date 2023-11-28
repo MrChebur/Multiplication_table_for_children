@@ -4,7 +4,6 @@ from task import Task
 
 
 # noinspection PyMethodMayBeStatic
-
 class GenerateTasks:
 
     @staticmethod
@@ -29,7 +28,7 @@ class GenerateTasks:
 
     def sum(self, summands: list[int], limit=None, shuffle=True) -> list[Task]:
         """
-        Generate list of difference `Task`s
+        Generate list of sum `Task`s
         :param summands: List of summands to be used in generation.
         :param shuffle: True - will shuffle list randomly, False - the list will be ordered
         :param limit: A value that limits the maximum value of the sum of two summands. Sums exceeding this value will
@@ -45,33 +44,6 @@ class GenerateTasks:
             if limit is None:
                 tasks.append(task)
             elif task.solve() <= limit:
-                tasks.append(task)
-
-        if shuffle:
-            random.shuffle(tasks)
-        return tasks
-
-    # todo: это полностью неправильный способ генерации!!! Нет многих значений, см. результаты.
-    def difference(self, values: list[int], limit=None, shuffle=True) -> list[Task]:
-        """
-        Generate list of difference `Task`s
-        :param values: List of minuend and subtrahend values to be used in generation (reversed generation)
-        :param shuffle: True - will shuffle list randomly, False - the list will be ordered
-        :param limit: A value that limits the maximum value of the minuend. Minuend exceeding this value will not
-        be included in the generated sample. If None no values skipped.
-        :return: List of Tasks
-        """
-        tasks = []
-        permutations = self._generate_uniq_permutations(values, values)
-        for permutation in permutations:
-            random.shuffle(permutation)  # randomizes divisor and result
-            minuend = str(permutation[0] + permutation[1])
-            subtrahend = str(permutation[0])
-            task = Task(f'{minuend} - {subtrahend}')
-
-            if limit is None:
-                tasks.append(task)
-            elif int(minuend) <= limit:
                 tasks.append(task)
 
         if shuffle:
@@ -102,7 +74,27 @@ class GenerateTasks:
             random.shuffle(tasks)
         return tasks
 
-    # todo: это полностью неправильный способ генерации!!! Нет многих значений, см. результаты.
+    def difference(self, values: list[int], only_positive=False, shuffle=True) -> list[Task]:
+        """
+        Generate list of difference `Task`s
+        :param values: Minuend and substrahend values.
+        :param shuffle: True - will shuffle list randomly, False - the list will be ordered
+        :param only_positive: If True - negative results are skipped.
+        :return: List of Tasks
+        """
+        tasks = []
+        permutations = self._generate_uniq_permutations(values, values)
+        for permutation in permutations:
+            task = Task(f'{permutation[1]} - {permutation[0]}')
+            if only_positive:
+                if int(task.solve()) < 0:
+                    continue
+            tasks.append(task)
+
+        if shuffle:
+            random.shuffle(tasks)
+        return tasks
+
     def division(self, multipliers: list[int], shuffle=True) -> list[Task]:
         """
         Generate list of division `Task`s
@@ -194,6 +186,38 @@ class GenerateTasks:
 if __name__ == '__main__':
     g = GenerateTasks()
 
+    print('division in range 9-2, checked - ok')
+    multipliers_ = list(range(9, 1, -1))
+    print(multipliers_)
+    tsks = g.division(multipliers_, shuffle=False)
+    print(len(tsks))
+    for t in tsks:
+        print(t, t.solve())
+
+    print('difference in range 10-1, max minuend 10, checked - ok')
+    values_ = list(range(10, 0, -1))
+    print(values_)
+    tsks = g.difference(values_, shuffle=False)
+    tsks.sort()
+    print(len(tsks))
+    for t in tsks:
+        print(t, t.solve())
+
+    print('summing in range 0-10 max answer 10, checked - ok')
+    summands_ = list(range(0, 11))
+    tsks = g.sum(summands_, shuffle=False, limit=10)
+    print(len(tsks))
+    for t in tsks:
+        print(t, t.solve())
+
+    print('multiplying in range 2-9, checked - ok')
+    multipliers_ = list(range(2, 10))
+    print(multipliers_)
+    tsks = g.multiplication(multipliers_, shuffle=False)
+    print(len(tsks))
+    for t in tsks:
+        print(t, t.solve())
+
     # s = g.russian_syllables(shuffle=False)
     # print(s)
     # print(len(s))
@@ -201,28 +225,3 @@ if __name__ == '__main__':
     # s = g.russian_syllables(shuffle=False, skip_censored=False)
     # print(s)
     # print(len(s))
-
-    multipliers_ = list(range(2, 10))
-    # # print(multipliers_)    #
-    # tsks = g.multiplication(multipliers_, shuffle=False)
-    # for t in tsks:
-    #     print(t, t.solve())
-    #
-
-    print()
-    tsks = g.division(multipliers_, shuffle=False)
-    for t in tsks:
-        print(t, t.solve())
-
-    print()
-    tsks = g.difference(multipliers_, shuffle=False, limit=10)
-    tsks.sort()
-    for t in tsks:
-        print(t, t.solve())
-
-    # summands_ = list(range(0, 10))
-    # print(summands_)
-    # tsks = g.sum(summands_, shuffle=False, limit=10)
-    # print(len(tsks))
-    # for t in tsks:
-    #     print(t, t.solve())
