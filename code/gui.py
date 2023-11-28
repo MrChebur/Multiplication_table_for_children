@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 from collections import OrderedDict
 
-from PySide6.QtGui import QPixmap, QMouseEvent, QFont
+from PySide6.QtGui import QMouseEvent, QFont
 from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QTableWidgetItem, QTableWidget, QGridLayout, \
     QVBoxLayout, QSpacerItem, QSizePolicy, QAbstractItemView, QSpinBox, QAbstractSpinBox, QPushButton
 from PySide6.QtCore import Qt
@@ -409,13 +409,16 @@ class ResultsWindow(QWidget):
         self.vbox.setAlignment(Qt.AlignCenter)
 
         # create widgets
-        self.results_label = QLabel()
-
         results = self.generateResultsStrings()
-        self.results_label.setText(results)
-        self.vbox.addWidget(self.results_label, 1, 1)
-        self.results_label.setAlignment(Qt.AlignLeft)
-        self.results_label.setFont(QFont('Arial', 12))
+
+        for num, line in enumerate(results, start=1):
+            column = math.ceil(num / 10) - 1
+            row = num - column * 10
+            self.results_label = QLabel()
+            self.results_label.setText(line)
+            self.vbox.addWidget(self.results_label, row, column)
+            self.results_label.setAlignment(Qt.AlignLeft)
+            self.results_label.setFont(QFont('Arial', 12))
 
     def generateResultsStrings(self):
         HTML_NEWLINE = '<br>'
@@ -444,8 +447,8 @@ class ResultsWindow(QWidget):
 
             lines.append(colored_line + colored_time)
 
-        results = HTML_NEWLINE.join(lines)
-        return results
+        # results = HTML_NEWLINE.join(lines)
+        return lines
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
