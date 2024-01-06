@@ -9,10 +9,11 @@ from PySide6.QtGui import QMouseEvent, QFont, QKeyEvent
 from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QTableWidgetItem, QTableWidget, QGridLayout, \
     QVBoxLayout, QSpacerItem, QSizePolicy, QAbstractItemView, QSpinBox, QAbstractSpinBox, QPushButton
 from PySide6.QtCore import Qt
-from generate import GenerateTasks
-from screeninfo import get_monitors
+
+from screeninfo import get_monitors  # custom library https://github.com/rr-/screeninfo
 
 from task import Task
+from generate import GenerateTasks
 
 
 def findMainWindow() -> QMainWindow or None:
