@@ -8,10 +8,12 @@ Choose one of 4 types of tests, testing the skills of:
 - multiplication,
 - division.
 
-Allows you to show the multiplication table when you click on the lamp sign. 
+Shows the multiplication table when you click on the lamp sign.
 
 After passing the test, a summary of errors, correct answers and time spent on solving each individual task is given. 
 In the summary with results, the user's answer is shown in parentheses. Correct answers are marked in green, incorrect answers are marked in red.
+
+Upon completion, a `.log` file is created with the test results.
 
 Depending on the time spent on the task, the results are colored differently:
 - <font color="green">from 0 to 5 seconds </font> (green)
@@ -23,7 +25,7 @@ and Virus total [check results](https://www.virustotal.com/gui/file/a52d6d55aec7
 
 # Screenshots and screencast
 
-![Screencast](https://github.com/MrChebur/Multiplication_table_for_children/blob/master/screenshots/test_example.gif)
-![Interface1](https://github.com/MrChebur/Multiplication_table_for_children/blob/master/screenshots/interface1.png)
-![Interface2](https://github.com/MrChebur/Multiplication_table_for_children/blob/master/screenshots/interface2.png)
-![Interface3](https://github.com/MrChebur/Multiplication_table_for_children/blob/master/screenshots/interface3.png)
+![Screencast](screenshots/test_example.gif)
+![Interface1](screenshots/interface1.png)
+![Interface2](screenshots/interface2.png)
+![Interface3](screenshots/interface3.png)
