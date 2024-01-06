@@ -100,15 +100,15 @@ class MainWindow(QMainWindow):
         tasks_multiply = GenerateTasks().multiplication(list(range(2, 10)))  # multiplying in range 2-9
         tasks_division = GenerateTasks().division(list(range(9, 1, -1)))  # division in range 9-2
 
-        self.sum_label.mousePressEvent = partial(self.startTheTest, tasks_summ)
-        self.difference_label.mousePressEvent = partial(self.startTheTest, tasks_difference)
-        self.multiply_label.mousePressEvent = partial(self.startTheTest, tasks_multiply)
-        self.devision_label.mousePressEvent = partial(self.startTheTest, tasks_division)
+        self.sum_label.mousePressEvent = partial(self.startTheTest, tasks_summ, '? + ? = ')
+        self.difference_label.mousePressEvent = partial(self.startTheTest, tasks_difference, '? - ? = ')
+        self.multiply_label.mousePressEvent = partial(self.startTheTest, tasks_multiply, '? × ? = ')
+        self.devision_label.mousePressEvent = partial(self.startTheTest, tasks_division, '? ÷ ? = ')
 
     # noinspection PyUnusedLocal
-    def startTheTest(self, tasks: [Task], event: QMouseEvent):
+    def startTheTest(self, tasks: [Task], start_label_text, event: QMouseEvent):
         random.shuffle(tasks)
-        self.exam_window = ExamWindow(tasks)
+        self.exam_window = ExamWindow(tasks, start_label_text)
         self.exam_window.showMaximized()
         self.hide()
 
@@ -248,7 +248,7 @@ class MultiplicationTableWindow(QWidget):
 # noinspection PyMethodMayBeStatic
 class ExamWindow(QWidget):
 
-    def __init__(self, tasks: [Task]):
+    def __init__(self, tasks: [Task], start_label_text):
         super().__init__()
         self.results_window = None
         self.setWindowTitle(' ')
@@ -265,7 +265,7 @@ class ExamWindow(QWidget):
 
         # create widgets
         self.task_label = QLabel()
-        self.task_label.setText('? × ? = ')
+        self.task_label.setText(start_label_text)
         self.answer = QSpinBox()
         self.answer.setDisabled(True)
         self.answer.setSpecialValueText(' ')

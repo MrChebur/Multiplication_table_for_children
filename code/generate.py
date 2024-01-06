@@ -74,7 +74,7 @@ class GenerateTasks:
             random.shuffle(tasks)
         return tasks
 
-    def difference(self, values: list[int], only_positive=False, shuffle=True) -> list[Task]:
+    def difference(self, values: list[int], only_positive=False, shuffle=True, skip_zero_answer=True) -> list[Task]:
         """
         Generate list of difference `Task`s
         :param values: Minuend and substrahend values.
@@ -89,6 +89,10 @@ class GenerateTasks:
             if only_positive:
                 if int(task.solve()) < 0:
                     continue
+            if skip_zero_answer:
+                if int(task.solve()) == 0:
+                    continue
+
             tasks.append(task)
 
         if shuffle:
